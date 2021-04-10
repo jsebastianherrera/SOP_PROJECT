@@ -14,30 +14,31 @@ int main(int argc, char **argv)
     }
     int fd[2];
     data dt;
+    memset((data *)&dt, 0, sizeof(dt));
     read_file(&dt, argv[4]);
-    print(dt);
-    //   write_pipe(fd[1], (data *)&dt, sizeof(dt), pipe);
+    write_pipe(fd[1], (data *)&dt, sizeof(dt), pipe);
 }
 void read_file(data *dt, char *file)
 {
-
-    int i = 0, k;
-    FILE *fd = fopen(file, "r");
-    char *pnt, *line = malloc(MAX_SIZE);
-    while (fgets(line, sizeof(line), fd) != NULL && line[0] != 44)
+    int i = 0;
+    FILE *fd = fopen(file, "r"); 
+    char *pnt, *line =malloc(MAX_SIZE);
+    while (fgets(line, MAX_SIZE, fd) != NULL && line[0] != 44)
     {
-        k = 0;
-        line = drop_space(line);
+
+        int k = 0;
         pnt = strtok(line, ",");
-        strcpy(dt->reservation[i].family_name, pnt);
-        while (pnt != NULL)
+        line = drop_space(line);
+        while (pnt != NULL && k <= 2)
         {
-            pnt = strtok(NULL, ",");
             if (k == 0)
+                strcpy(dt->reservation[i].family_name, pnt);
+            else if (k == 1)
                 dt->reservation[i].time = atoi(pnt);
             else
                 dt->reservation[i].amount_people = atoi(pnt);
             k++;
+            pnt = strtok(NULL, ",");
         }
         i++;
     }
