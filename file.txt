@@ -1,0 +1,4 @@
+Zuluaga,7,10
+Perez,7,4
+Rojas,8,10
+,,

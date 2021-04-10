@@ -51,3 +51,22 @@ void read_pipe(int fd, void *buf, size_t size, char *pipe)
     printf("Received it:%d\n", bytes);
     close(fd);
 }
+char *drop_space(char *line)
+{
+    char *rt = malloc(strlen(line));
+    int k = 0;
+    for (int i = 0; i < strlen(line); ++i)
+    {
+        if (line[i] != 32)
+        {
+            rt[k] = line[i];
+            k++;
+        }
+    }
+    return rt;
+}
+void print(data dt)
+{
+    for (int i = 0; i < dt.size; i++)
+        printf("Familia:%s - Hora:%d - #Personas:%d\n", dt.reservation[i].family_name, dt.reservation[i].time, dt.reservation[i].amount_people);
+}
