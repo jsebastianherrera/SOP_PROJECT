@@ -3,4 +3,4 @@ control:
 agente:
 		gcc agente.c -g -o agente && ./agente -s agente1 -a file.txt -t 20 -p pipe
 clean:
-		clear && rm -f *.o control agente
+		clear && rm -f *.o control agente pipe 
