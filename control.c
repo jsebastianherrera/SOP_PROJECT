@@ -1,5 +1,4 @@
 #include "data.h"
-#include "playa.h"
 int main(int argc, char **argv)
 {
     char *pipe = malloc(MAX_SIZE);
