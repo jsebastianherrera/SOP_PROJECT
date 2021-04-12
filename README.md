@@ -17,11 +17,11 @@ de archivos
 
 ## Descripción General
 
-Debido a la situación de pandemia que se vive desde el año pasado el gobierno ha decretado medidas para la protección de los ciudadanos, pero al mismo tiempoesta fomentadoactividades para activar sectoresimportantes como el comercio y el turismo.  Una de esas medidas es establecer unaforo máximo para los sitios que usualmente visitan los turistas como las playas o parques  nacionales.  Esto  ha  obligado  a  los  gobiernos  y  entidades  locales,  a  desarrollar aplicaciones para que las personas reserven por anticipado su entrada a estos lugares.
+Debido a la situación de pandemia que se vive desde el año pasado el gobierno ha decretado medidas para la protección de los ciudadanos, pero al mismo tiempo esta fomentado actividades para activar sectores importantes como el comercio y el turismo.  Una de esas medidas es establecer un aforo máximo para los sitios que usualmente visitan los turistas como las playas o parques  nacionales.  Esto  ha  obligado  a  los  gobiernos  y  entidades  locales,  a  desarrollar aplicaciones para que las personas reserven por anticipado su entrada a estos lugares.
 
 En este proyecto vamos a desarrollar una aplicación para la reserva de espacios en una playa pública. Adicionalmente simularemos su ejecución con posibles familias que entrarán a usar el servicio en un determinado día.
 
-La aplicación tendrá una arquitectura del tipo cliente/servidor. El servidor, llamado **Controlador de Reserva**, es un proceso que atenderá las solicitudes de reserva para estar en la playa. Estas solicitudes son realizadas por varios **Agentes de Reserva**, que son los procesos cliente. Los procesos se comunicarán a través de pipes nominales. A continuación,se explican las funciones de estos componentespara posteriormente exponer detalles sobre sus parámetros y protocolosde comunicación.
+La aplicación tendrá una arquitectura del tipo cliente/servidor. El servidor, llamado **Controlador de Reserva**, es un proceso que atenderá las solicitudes de reserva para estar en la playa. Estas solicitudes son realizadas por varios **Agentes de Reserva**, que son los procesos cliente. Los procesos se comunicarán a través de pipes nominales. A continuación,se explican las funciones de estos componentes para posteriormente exponer detalles sobre sus parámetros y protocolos de comunicación.
 
 
 ## Controlador de Reserva
