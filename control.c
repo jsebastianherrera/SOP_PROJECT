@@ -1,4 +1,6 @@
 #include "data.h"
+#include "Tree/GeneralTree.h"
+void init_tree();
 int main(int argc, char **argv)
 {
     char *pipe = malloc(MAX_SIZE);
@@ -30,15 +32,21 @@ int main(int argc, char **argv)
         exit(1);
     }
     //**************************************************
-
+    GeneralTree *tree;
+    char *horas = (char *)malloc(MAX_SIZE);
+    int x = 0;
+    strcpy(horas, "Horas");
+    init_GeneralTree(&tree, horas);
+    GeneralNode *node = tree->root;
+    printf("::root::%s\n", (char *)(node->data));
     int connected = 0;
     struct reserva re;
     do
     {
-        read_pipe(fd[0], &re, sizeof(re), pipe, O_RDONLY);
+        read_pipe(fd[0], (struct Reserva *)&re, sizeof(re), pipe, O_RDONLY);
         if (re.amount_people == 0 && re.time == 0)
             break;
-        write_pipe(fd[1], &re, sizeof(re), pipe, O_WRONLY);
+        write_pipe(fd[1], (struct Reserva *)&re, sizeof(re), pipe, O_WRONLY);
     } while (1);
     /*
     read_pipe(fd[0], (struct data *)&dt, sizeof(struct data), pipe, O_RDONLY);
