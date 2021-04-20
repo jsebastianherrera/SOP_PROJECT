@@ -10,13 +10,8 @@ typedef struct node
 typedef struct list
 {
     struct node *head;
-    
+
 } list, List;
-typedef struct General
-{
-    void *data;
-    list *dec;
-} General;
 //*Functions
 node *newNode(void *value)
 {
@@ -34,21 +29,21 @@ void init_list(list **lista, void *value)
 }
 void push_back(list **lista, void *value)
 {
-
+  
     if (*lista != NULL)
     {
+          node *aux = (*lista)->head;
         node *nw = newNode(value);
-        node *head = (*lista)->head;
-        while (head->next != NULL)
-            head = head->next;
-        head->next = nw;
+        while (aux->next != NULL)
+            aux = aux->next;
+        aux->next = nw;
     }
     else
         init_list(lista, value);
 }
 int delete_node(list **lista, void *value)
 {
-    if (*lista != NULL)
+    if ((*lista)->head != NULL)
     {
         //Check the head first if you want to remove a node, if the value is equal, we need to point to the head of the list with the following pointer
         node *head = (*lista)->head;

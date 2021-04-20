@@ -37,9 +37,10 @@ int insertNode(GeneralNode **current, void *parent, void *value)
 {
     int retorno = NOT;
     GeneralNode *ct = *current;
+    GeneralNode *newG = init_GeneralNode(value);
     if (ct != NULL && ct->data == parent)
     {
-        push_back(&ct->dec, value);
+        push_back(&ct->dec, newG);
         retorno = OK;
     }
     else if (ct != NULL && ct->dec != NULL)
@@ -47,7 +48,8 @@ int insertNode(GeneralNode **current, void *parent, void *value)
         Node *node = ct->dec->head;
         while (node != NULL && retorno == NOT)
         {
-            retorno = insertNode((GeneralNode **)node->data, parent, value);
+            GeneralNode *tmp = (GeneralNode *)*((size_t *)node->data);
+            retorno = insertNode(&tmp, parent, value);
             node = node->next;
         }
     }
