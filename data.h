@@ -44,12 +44,12 @@ int check_time(int compareTo, int current_time)
 {
     return -1 ? compareTo < current_time : 0;
 }
-void write_pipe(int fd, void *buf, size_t size, char *pipe)
+void write_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
 {
-    int flag = 0, bytes;
+    int boolean = 0, bytes;
     do
     {
-        fd = open(pipe, O_WRONLY);
+        fd = open(pipe, flag);
         if (fd == -1)
         {
             perror("pipe");
@@ -57,8 +57,8 @@ void write_pipe(int fd, void *buf, size_t size, char *pipe)
             sleep(5);
         }
         else
-            flag = 1;
-    } while (flag == 0);
+            boolean = 1;
+    } while (boolean == 0);
     bytes = write(fd, buf, size);
     printf("Sent it:%d\n", bytes);
     close(fd);
