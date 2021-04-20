@@ -4,12 +4,16 @@ void print(GeneralNode *, int);
 int main(void)
 {
   GeneralTree *tree;
-  int r = 0, x = 1, y = 2, v = 3;
+  int r = 0, a = 1, b = 2, c = 3, d = 4, e = 5;
   init_GeneralTree(&tree, (int *)&r);
-  insertNode(&tree->root, (int *)&r, (int *)&x);
+  insertNode(&tree->root, (int *)&r, (int *)&a);
+  insertNode(&tree->root, (int *)&r, (int *)&b);
+  insertNode(&tree->root, (int *)&r, (int *)&c);
+  insertNode(&tree->root, (int *)&r, (int *)&d);
+  insertNode(&tree->root, (int *)&r, (int *)&e);
+  deleteDec(&tree->root, (int *)&r);
   int space = 0;
   print(tree->root, space);
-  getchar();
 }
 void print(GeneralNode *ct, int space)
 {
@@ -19,16 +23,11 @@ void print(GeneralNode *ct, int space)
     while (node != NULL)
     {
       space += COUNT;
-      GeneralNode *tmp = (GeneralNode *)*((size_t *)node->data);
+      GeneralNode *tmp = (GeneralNode *)node->data;
       print(tmp, space);
       node = node->next;
     }
   }
-  else if (ct != NULL)
-  {
-    printf("\n");
-    for (int i = COUNT; i < space; i++)
-      printf(" ");
+  if (ct != NULL)
     printf("%d\n", *(int *)ct->data);
-  }
 }

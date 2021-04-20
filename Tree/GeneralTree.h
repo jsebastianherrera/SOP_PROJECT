@@ -48,7 +48,7 @@ int insertNode(GeneralNode **current, void *parent, void *value)
         Node *node = ct->dec->head;
         while (node != NULL && retorno == NOT)
         {
-            GeneralNode *tmp = (GeneralNode *)*((size_t *)node->data);
+            GeneralNode *tmp = (GeneralNode *)node->data;
             retorno = insertNode(&tmp, parent, value);
             node = node->next;
         }
@@ -57,31 +57,7 @@ int insertNode(GeneralNode **current, void *parent, void *value)
 }
 int deleteDec(GeneralNode **current, void *value)
 {
-    int deleted = NOT;
-    GeneralNode *ct = *current;
-    if (ct != NULL && ct->data == value)
-    {
-        if (ct->dec != NULL)
-        {
-            void *val = ct->dec->head->data;
-            List *tmp = ct->dec;
-            ct->data = val;
-            ct->dec = tmp;
-        }
-        else
-            free(ct);
-        deleted = OK;
-    }
-    else if (ct != NULL && ct->dec != NULL)
-    {
-        Node *node = ct->dec->head;
-        while (node != NULL && deleted == NOT)
-        {
-            deleted = deleteDec((GeneralNode **)node, value);
-            node = node->next;
-        }
-    }
-    return deleted;
+
 }
 int leafNode(GeneralNode *node)
 {
