@@ -11,9 +11,8 @@ int main(void)
   insertNode(&tree->root, (int *)&r, (int *)&c);
   insertNode(&tree->root, (int *)&r, (int *)&d);
   insertNode(&tree->root, (int *)&r, (int *)&e);
-  deleteDec(&tree->root, (int *)&r);
-  int space = 0;
-  print(tree->root, space);
+  deleteDec(&tree->root, (int *)&a);
+  print(tree->root, 0);
 }
 void print(GeneralNode *ct, int space)
 {

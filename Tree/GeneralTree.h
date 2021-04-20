@@ -28,7 +28,6 @@ void init_GeneralTree(GeneralTree **tree, void *value)
 }
 /**
  * @brief AddDesc in a speciific node
- * 
  * @param root root of the tree
  * @param parent Node that repesent the parent node where you want to add a new value
  * @param value Value to make a new node
@@ -54,10 +53,6 @@ int insertNode(GeneralNode **current, void *parent, void *value)
         }
     }
     return retorno;
-}
-int deleteDec(GeneralNode **current, void *value)
-{
-
 }
 int leafNode(GeneralNode *node)
 {
