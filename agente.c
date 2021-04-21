@@ -38,15 +38,15 @@ int main(int argc, char **argv)
             if (k == 0)
                 strcpy(re.family_name, pnt);
             else if (k == 1)
-                re.time = atoi(pnt);
+                strcpy(re.time, pnt);
             else
                 re.amount_people = atoi(pnt);
             k++;
             pnt = strtok(NULL, ",");
         }
-        if (re.time < current_time)
+        if (atoi(re.time) < current_time)
         {
-            PRINT_VAR(re.time);
+            PRINT_VAR(atoi(re.time));
         }
         else
         {

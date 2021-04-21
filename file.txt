@@ -1,4 +1,8 @@
 Zuluaga,7,10
 Perez,7,4
 Rojas,8,10
+Jorge,20,10
+Sebas,18,10
+Majo,17,10
+Sara,11,10
 ,,

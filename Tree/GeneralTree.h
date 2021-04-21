@@ -37,7 +37,7 @@ int insertNode(GeneralNode **current, void *parent, void *value)
     int retorno = NOT;
     GeneralNode *ct = *current;
     GeneralNode *newG = init_GeneralNode(value);
-    if (ct != NULL && ct->data == parent)
+    if (ct != NULL && strcmp(ct->data,parent) == 0)
     {
         push_back(&ct->dec, newG);
         retorno = OK;

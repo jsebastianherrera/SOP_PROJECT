@@ -1,6 +1,7 @@
 #include "data.h"
 #include "Tree/GeneralTree.h"
-void init_tree();
+void set_tree(GeneralTree **tree);
+void printTree(GeneralNode *ct);
 int main(int argc, char **argv)
 {
     char *pipe = malloc(MAX_SIZE);
@@ -33,26 +34,55 @@ int main(int argc, char **argv)
     }
     //**************************************************
     GeneralTree *tree;
-    char *horas = (char *)malloc(MAX_SIZE);
-    int x = 0;
-    strcpy(horas, "Horas");
-    init_GeneralTree(&tree, horas);
+    init_GeneralTree(&tree, "Horas");
+    set_tree(&tree);
     GeneralNode *node = tree->root;
-    printf("::root::%s\n", (char *)(node->data));
-    int connected = 0;
-    struct reserva re;
+    int cont = 0;
+    struct reserva re[20];
     do
     {
-        read_pipe(fd[0], (struct Reserva *)&re, sizeof(re), pipe, O_RDONLY);
-        if (re.amount_people == 0 && re.time == 0)
+        read_pipe(fd[0], (struct Reserva *)&re[cont], sizeof(Reserva), pipe, O_RDONLY);
+        if (re[cont].amount_people == 0)
             break;
-        write_pipe(fd[1], (struct Reserva *)&re, sizeof(re), pipe, O_WRONLY);
+        else
+            insertNode(&tree->root, (char *)&re[cont].time, (char *)&re[cont].family_name);
+        write_pipe(fd[1], (struct Reserva *)&re[cont], sizeof(Reserva), pipe, O_WRONLY);
+        cont++;
     } while (1);
-    /*
-    read_pipe(fd[0], (struct data *)&dt, sizeof(struct data), pipe, O_RDONLY);
-    print(dt);
-    simulate_time(2, 2, 1); //*add to current time the simulated hours argv[2]
-    bh.current_time += 2;
-    PRINT_VAR(bh.current_time);
-*/
+    //****************************************************************
+    printf("\n");
+    printTree(tree->root);
+    //TODO:Data stucture
+}
+void set_tree(GeneralTree **tree)
+{
+    insertNode(&(*tree)->root, "Horas", "7");
+    insertNode(&(*tree)->root, "Horas", "8");
+    insertNode(&(*tree)->root, "Horas", "9");
+    insertNode(&(*tree)->root, "Horas", "10");
+    insertNode(&(*tree)->root, "Horas", "11");
+    insertNode(&(*tree)->root, "Horas", "12");
+    insertNode(&(*tree)->root, "Horas", "13");
+    insertNode(&(*tree)->root, "Horas", "14");
+    insertNode(&(*tree)->root, "Horas", "15");
+    insertNode(&(*tree)->root, "Horas", "16");
+    insertNode(&(*tree)->root, "Horas", "17");
+    insertNode(&(*tree)->root, "Horas", "18");
+    insertNode(&(*tree)->root, "Horas", "19");
+    insertNode(&(*tree)->root, "Horas", "20");
+}
+void printTree(GeneralNode *ct)
+{
+    if (ct != NULL && ct->dec != NULL)
+    {
+        Node *node = ct->dec->head;
+        while (node != NULL)
+        {
+            GeneralNode *tmp = (GeneralNode *)node->data;
+            printTree(tmp);
+            node = node->next;
+        }
+    }
+    if (ct != NULL)
+        printf("%s\n", (char *)(ct->data));
 }
