@@ -29,10 +29,10 @@ void init_list(list **lista, void *value)
 }
 void push_back(list **lista, void *value)
 {
-  
+
     if (*lista != NULL)
     {
-          node *aux = (*lista)->head;
+        node *aux = (*lista)->head;
         node *nw = newNode(value);
         while (aux->next != NULL)
             aux = aux->next;
@@ -40,6 +40,21 @@ void push_back(list **lista, void *value)
     }
     else
         init_list(lista, value);
+}
+int size_list(List *list)
+{
+    int i = 0;
+    if (list != NULL)
+    {
+        node *aux = list->head;
+        i = 1;
+        while (aux->next != NULL)
+        {
+            i++;
+            aux = aux->next;
+        }
+    }
+    return i;
 }
 int delete_node(list **lista, void *value)
 {

@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include "playa.h"
 #include "reserva.h"
+#include "Tree/GeneralTree.h"
 #define MAX_RESERVARTION 20
 #define PRINT_VAR(X) printf("Values:%d\n", X);
 typedef struct data
@@ -35,16 +36,12 @@ void simulate_time(const int argc, ...)
     for (int i = 0; i < values[0]; ++i)
         sleep(values[1]);
 }
-int answer_request(reserva re, beach bh, int current_time, int max_people)
-{
-    if (bh.amount_people <= max_people)
-        return -1;
-}
+
 int check_time(int compareTo, int current_time)
 {
     return -1 ? compareTo < current_time : 0;
 }
-void write_pipe(int fd, void *buf, size_t size, char* pipe, int flag)
+void write_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
 {
     int boolean = 0, bytes;
     do
@@ -101,4 +98,57 @@ void print(data dt)
     printf("Solicitudes agente:%s\n", dt.agent_name);
     for (int i = 0; i < dt.size; i++)
         printf("Familia:%s - Hora:%s - #Personas:%d\n", dt.reservation[i].family_name, dt.reservation[i].time, dt.reservation[i].amount_people);
+}
+char *int_to_char(int num, int param)
+{
+    char *ret = malloc(4);
+    int i = 0;
+    if (param == 0)
+    {
+        ret[i] = ',';
+        i++;
+    }
+    if (num > 9)
+    {
+        ret[i] = num / 10 + 48;
+        ret[i + 1] = num % 10 + 48;
+    }
+    else
+        ret[i] = num + 48;
+    return ret;
+}
+void update_beach(GeneralTree *tree, beach *bh)
+{
+    GeneralNode *found = search(tree->root, int_to_char(bh->current_time, 1));
+    int i = 0, sum = 0;
+    if (found != NULL && size_list(found->dec) > 0)
+    {
+        Node *node = found->dec->head;
+        for (int i = 0; i < size_list(found->dec); i++)
+        {
+            GeneralNode *tmp = (GeneralNode *)node->data;
+            char *cpy = malloc(MAX_SIZE);
+            strcpy(cpy, tmp->data);
+            char *token = strtok(cpy, ",");
+            token = strtok(NULL, ",");
+            sum += atoi(token);
+            node = node->next;
+        }
+    }
+    bh->amount_people = sum;
+}
+int answer_request(GeneralTree *tree, reserva *re, beach *bh)
+{
+    GeneralNode *found = search(tree->root, re->time);
+    if (found != NULL)
+    {
+        update_beach(tree, bh);
+        if (bh->amount_people + re->amount_people <= bh->max_people)
+        {
+            re->status = 0;
+            insertNode(&tree->root, re->time, strcat(re->family_name, int_to_char(re->amount_people, 0)));
+        }
+    }
+    else
+        return -1;
 }

@@ -37,7 +37,7 @@ int insertNode(GeneralNode **current, void *parent, void *value)
     int retorno = NOT;
     GeneralNode *ct = *current;
     GeneralNode *newG = init_GeneralNode(value);
-    if (ct != NULL && strcmp(ct->data,parent) == 0)
+    if (ct != NULL && strcmp(ct->data, parent) == 0)
     {
         push_back(&ct->dec, newG);
         retorno = OK;
@@ -53,6 +53,32 @@ int insertNode(GeneralNode **current, void *parent, void *value)
         }
     }
     return retorno;
+}
+GeneralNode *search(GeneralNode *ct, void *value)
+{
+    GeneralNode *rt = NULL;
+    if (ct != NULL && strcmp(ct->data, value) == 0)
+        rt = ct;
+
+    else if (ct != NULL && ct->dec != NULL)
+    {
+        Node *node = ct->dec->head;
+        while (node != NULL && rt == NULL)
+        {
+            GeneralNode *tmp = (GeneralNode *)node->data;
+            rt = search(tmp, value);
+            node = node->next;
+        }
+    }
+    return rt;
+}
+int count_children(GeneralNode *root, char *date)
+{
+    GeneralNode *rt = search(root, date);
+    if (rt != NULL)
+        return size_list(rt->dec);
+    else
+        return 0;
 }
 int leafNode(GeneralNode *node)
 {
