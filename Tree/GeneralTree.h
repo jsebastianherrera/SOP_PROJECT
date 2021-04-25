@@ -58,7 +58,7 @@ GeneralNode *search(GeneralNode *ct, void *value)
 {
     GeneralNode *rt = NULL;
     if (ct != NULL && strcmp(ct->data, value) == 0)
-        rt = ct;
+        return ct;
 
     else if (ct != NULL && ct->dec != NULL)
     {
