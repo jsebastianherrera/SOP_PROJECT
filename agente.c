@@ -45,7 +45,7 @@ int main(int argc, char **argv)
             write_pipe(fd[1], &re, sizeof(re), pipe, O_WRONLY);
             simulate_time(2, 1, atoi(argv[6]));
             read_pipe(fd[0], &re, sizeof(re), pipe, O_RDONLY);
-            current_time = re.current_time;
+            current_time=re.current_time;
         }
     }
     memset(&re, 0, sizeof(Reserva));

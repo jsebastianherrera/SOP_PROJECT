@@ -56,7 +56,7 @@ void write_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
             boolean = 1;
     } while (boolean == 0);
     bytes = write(fd, buf, size);
-   // printf("Sent it:%d\n", bytes);
+    // printf("Sent it:%d\n", bytes);
     close(fd);
 }
 void read_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
@@ -75,7 +75,7 @@ void read_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
             fg = 1;
     } while (fg == 0);
     bytes = read(fd, buf, size);
-   // printf("Received it:%d\n", bytes);
+    // printf("Received it:%d\n", bytes);
     close(fd);
 }
 char *drop_space(char *line)
@@ -170,8 +170,8 @@ void update_beach(GeneralTree *tree, beach *bh)
 int getAmountPeopleByHour(GeneralTree **tree, int time)
 {
     int rt = 0;
-  //  printf("TIME::%d\n", getCurrentTime((*tree)->root));
-    GeneralNode *found = search((*tree)->root,int_to_char(time,1));
+    //  printf("TIME::%d\n", getCurrentTime((*tree)->root));
+    GeneralNode *found = search((*tree)->root, int_to_char(time, 1));
     if (found != NULL && size_list(found->dec) > 0)
     {
         Node *node = found->dec->head;
@@ -188,6 +188,21 @@ int getAmountPeopleByHour(GeneralTree **tree, int time)
     }
     return rt;
 }
+int sufficent_space(GeneralTree *tree, reserva re, beach bh)
+{
+    int rt = -1;
+    for (int i = getCurrentTime(tree->root); i < bh.close_time; i++)
+    {
+        if (getAmountPeopleByHour(&tree, i) + re.amount_people <= bh.max_people)
+        {
+            if (getAmountPeopleByHour(&tree, i + 1) + re.amount_people <= bh.max_people)
+            {
+                return i;
+            }
+        }
+    }
+    return rt;
+}
 int answer_request(GeneralTree **tree, reserva *re, beach *bh)
 {
     int rt = 1;
@@ -195,6 +210,7 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
     if (found != NULL)
     {
         update_beach(*tree, bh);
+        //Reserve ok
         if (getAmountPeople((*tree)->root) + re->amount_people <= bh->max_people)
         {
             re->status = 0;
@@ -206,10 +222,34 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
                 time += i;
                 insertNode(&(*tree)->root, int_to_char(time, 1), a);
             }
-            update_tree(tree, getAmountPeopleByHour(tree,atoi(re->time)), bh->current_time);
         }
+        //Max amount filled
+        else
+        {
+            if (sufficent_space(*tree, *re, *bh) != -1)
+            {
+                // strcpy(re->time,int_to_char(sufficent_space(*tree, *re, *bh),1));
+                //answer_request(tree,re,bh);
+                re->status = 1;
+                char *a;
+                a = strcat(re->family_name, int_to_char(re->amount_people, 0));
+                int time = sufficent_space(*tree, *re, *bh);
+                for (int i = 0; i <= 1; ++i)
+                {
+                    time += i;
+                    insertNode(&(*tree)->root, int_to_char(time, 1), a);
+                }
+            }
+        }
+        //Late
+        /*if (atoire->time < getCurrentTime((*tree)->root))
+        {
+            rt = 2;
+        }*/
     }
     else
         return -1;
+    update_tree(tree, getAmountPeopleByHour(tree, atoi(re->time)), bh->current_time);
+
     return rt;
 }

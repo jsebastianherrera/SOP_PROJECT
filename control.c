@@ -124,4 +124,5 @@ void printTree(GeneralNode *ct)
     }
     if (ct != NULL)
         printf("%s\n", (char *)(ct->data));
+        
 }
