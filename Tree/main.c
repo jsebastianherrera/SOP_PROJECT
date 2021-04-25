@@ -1,9 +1,11 @@
-#include "GeneralTree.h"
+//#include "GeneralTree.h"
 #define COUNT 10
-void print(GeneralNode *, int);
+#include <stdio.h>
+#include <string.h>
+//void print(GeneralNode *, int);
 int main(void)
 {
-  GeneralTree *tree;
+  /*GeneralTree *tree;
   int r = 0, a = 1, b = 2, c = 3, d = 4, e = 5, q = 232332;
   init_GeneralTree(&tree, (int *)&r);
   insertNode(&tree->root, (int *)&r, (int *)&a);
@@ -15,9 +17,16 @@ int main(void)
   if (aux != NULL)
   {
     printf("::nice::%d\n",size_list(tree->root->dec));
+  }*/
+  char val[20] = "(7,0)";
+  char *pnt = strtok(val, "(,");
+  while (pnt != NULL)
+  {
+    printf("%s\n", pnt);
+    pnt = strtok(NULL, ")");
   }
 }
-void print(GeneralNode *ct, int space)
+/*void print(GeneralNode *ct, int space)
 {
   if (ct != NULL && ct->dec != NULL)
   {
@@ -33,3 +42,4 @@ void print(GeneralNode *ct, int space)
   if (ct != NULL)
     printf("%d\n", *(int *)ct->data);
 }
+*/

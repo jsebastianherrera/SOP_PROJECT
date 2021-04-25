@@ -1,8 +1,8 @@
-Zuluaga,7,10
-Perez,7,11
-Rojas,8,12
-Jorge,20,20
-Sebas,18,21
-Majo,17,22
-Sara,11,19
+Zuluaga,7,5
+Perez,7,4
+Rojas,5,1
+Jorge,20,3
+Sebas,18,5
+Majo,11,6
+Sara,11,7
 ,,

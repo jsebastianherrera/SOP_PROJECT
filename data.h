@@ -36,7 +36,6 @@ void simulate_time(const int argc, ...)
     for (int i = 0; i < values[0]; ++i)
         sleep(values[1]);
 }
-
 int check_time(int compareTo, int current_time)
 {
     return -1 ? compareTo < current_time : 0;
@@ -117,6 +116,37 @@ char *int_to_char(int num, int param)
         ret[i] = num + 48;
     return ret;
 }
+int getCurrentTime(GeneralNode *node)
+{
+    char *cpy = malloc(sizeof(char *));
+    strcpy(cpy, node->data);
+    char *token = strtok(cpy, "(,");
+    return atoi(token);
+}
+int getAmountPeople(GeneralNode *node)
+{
+    char *cpy = malloc(sizeof(char *));
+    strcpy(cpy, node->data);
+    char *token = strtok(cpy, "(,");
+    token = strtok(NULL, ")");
+    return atoi(token);
+}
+//Sum time
+void setHeadTime(GeneralNode **head, int time, int amount_people)
+{
+    char *_time = malloc(sizeof(char *));
+    strcat(_time, "(");
+    strcat(_time, int_to_char(time, 1));
+    strcat(_time, ",");
+    strcat(_time, int_to_char(amount_people, 1));
+    strcat(_time, ")");
+    strcpy((*head)->data, _time);
+}
+void update_tree(GeneralTree **tree, int amount_people, int current_time)
+{
+    if (*tree != NULL)
+        setHeadTime(&(*tree)->root, current_time, amount_people);
+}
 void update_beach(GeneralTree *tree, beach *bh)
 {
     GeneralNode *found = search(tree->root, int_to_char(bh->current_time, 1));
@@ -137,18 +167,42 @@ void update_beach(GeneralTree *tree, beach *bh)
     }
     bh->amount_people = sum;
 }
-int answer_request(GeneralTree *tree, reserva *re, beach *bh)
+int getAmountPeopleByHour(GeneralTree **tree, int time)
 {
-    GeneralNode *found = search(tree->root, re->time);
+    int rt = 0;
+    printf("TIME::%d\n", getCurrentTime((*tree)->root));
+    GeneralNode *found = search((*tree)->root, (int *)&time);
+    if (found != NULL && size_list(found->dec) > 0)
+    {
+        Node *node = found->dec->head;
+        for (int i = 0; i < size_list(found->dec); i++)
+        {
+            GeneralNode *tmp = (GeneralNode *)node->data;
+            char *cpy = malloc(MAX_SIZE);
+            strcpy(cpy, tmp->data);
+            char *token = strtok(cpy, ",");
+            token = strtok(NULL, ",");
+            rt += atoi(token);
+            node = node->next;
+        }
+    }
+    return rt;
+}
+int answer_request(GeneralTree **tree, reserva *re, beach *bh)
+{
+    int rt = 1;
+    GeneralNode *found = search((*tree)->root, re->time);
     if (found != NULL)
     {
-        update_beach(tree, bh);
-        if (bh->amount_people + re->amount_people <= bh->max_people)
+        update_beach(*tree, bh);
+        if (getAmountPeople((*tree)->root) + re->amount_people <= bh->max_people)
         {
             re->status = 0;
-            insertNode(&tree->root, re->time, strcat(re->family_name, int_to_char(re->amount_people, 0)));
+            insertNode(&(*tree)->root, re->time, strcat(re->family_name, int_to_char(re->amount_people, 0)));
+            update_tree(tree, getAmountPeopleByHour(tree, *re->time), 7);
         }
     }
     else
         return -1;
+    return rt;
 }

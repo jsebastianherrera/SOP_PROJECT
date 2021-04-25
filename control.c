@@ -1,5 +1,5 @@
 #include "data.h"
-void set_tree(GeneralTree **tree);
+void set_tree(GeneralTree **tree, char *, char *);
 void printTree(GeneralNode *ct);
 int main(int argc, char **argv)
 {
@@ -8,13 +8,13 @@ int main(int argc, char **argv)
     int fd[2];
     if (strcmp(argv[1], "-i") == 0 && strcmp(argv[3], "-f") == 0 && strcmp(argv[5], "-s") == 0 && strcmp(argv[7], "-t") == 0 && strcmp(argv[9], "-p") == 0)
     {
-        data dt;
         strcpy(pipe, argv[10]);
-        memset(&dt, 0, sizeof(dt));
         memset(&bh, 0, sizeof(beach));
         char *agent_name = malloc(MAX_SIZE / 2);
         bh.current_time = atoi(argv[2]);
         bh.max_people = atoi(argv[8]);
+        bh.close_time = atoi(argv[4]);
+        bh.amount_people = 0;
         mode_t fifo_mode = S_IRUSR | S_IWUSR;
         unlink(pipe);
         if (mkfifo(pipe, fifo_mode) == -1)
@@ -33,8 +33,8 @@ int main(int argc, char **argv)
     }
     //**************************************************
     GeneralTree *tree;
-    init_GeneralTree(&tree, "Horas");
-    set_tree(&tree);
+    printf("TIME******%d\n", bh.current_time);
+    set_tree(&tree, int_to_char(bh.current_time, 1), int_to_char(bh.close_time, 1));
     GeneralNode *node = tree->root;
     int cont = 0;
     struct reserva re[20];
@@ -45,23 +45,34 @@ int main(int argc, char **argv)
             break;
         else
         {
-            answer_request(tree, &re[cont], &bh);
-            //insertNode(&tree->root, (char *)&re[cont].time, strcat((char *)&re[cont].family_name, int_to_char(re[cont].amount_people, 0)));
+            if (answer_request(&tree, &re[cont], &bh) == 1)
+            {
+                printf("\n");
+                printTree(tree->root);
+                printf("\nOcupacion::(%d) ____ maxima Ocupacion::(%d)\n", getAmountPeople(node), atoi(argv[8]));
+                //number of parameters,hour,seconds
+                //simulate_time(2, 2,3);
+            }
         }
         write_pipe(fd[1], (struct Reserva *)&re[cont], sizeof(Reserva), pipe, O_WRONLY);
         cont++;
     } while (1);
     //****************************************************************
-    printf("\n");
-    printTree(tree->root);
-    printf("Gente actual::%d\n", bh.amount_people);
+
     //TODO:Data stucture
 }
-
-void set_tree(GeneralTree **tree)
+void set_tree(GeneralTree **tree, char *current_time, char *final_hour)
 {
-    for (int i = 7; i <= 20; ++i)
-        insertNode(&(*tree)->root, "Horas", int_to_char(i, 1));
+    char *time = malloc(sizeof(char *));
+    strcat(time, "(");
+    strcat(time, current_time);
+    strcat(time, ",");
+    strcat(time, "0)");
+    char *tmp = malloc(sizeof(char *));
+    strcpy(tmp, time);
+    init_GeneralTree(tree, time);
+    for (int i = atoi(current_time); i <= atoi(final_hour); ++i)
+        insertNode(&(*tree)->root, time, int_to_char(i, 1));
 }
 void printTree(GeneralNode *ct)
 {
