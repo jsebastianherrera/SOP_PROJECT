@@ -1,3 +1,13 @@
-Zuluaga,7,20
+Zuluaga,7,10
 Perez,7,4
+Jorge,7,7
+Rojas,8,1
+Herrera,9,11
+Sofia,9,2
+Javier,9,20
+Niño,10,20
+Tomas,11,20
+Cami,13,19
+Laia,15,5
+Walter,16,2
 ,,

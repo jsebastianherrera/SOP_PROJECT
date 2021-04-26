@@ -25,6 +25,7 @@ int main(int argc, char **argv)
     while (fgets(line, MAX_SIZE, file) != NULL && line[0] != 44)
     {
         memset((reserva *)&re, 0, sizeof(reserva));
+        re.status = -1;
         int k = 0;
         pnt = strtok(line, ",");
         line = drop_space(line);
@@ -41,11 +42,8 @@ int main(int argc, char **argv)
         }
         if (atoi(re.time) >= current_time)
         {
-
             write_pipe(fd[1], &re, sizeof(re), pipe, O_WRONLY);
-           simulate_time(2, 1, atoi(argv[6]));
             read_pipe(fd[0], &re, sizeof(re), pipe, O_RDONLY);
-            current_time=re.current_time;
         }
     }
     memset(&re, 0, sizeof(Reserva));

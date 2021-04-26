@@ -43,14 +43,14 @@ int main(int argc, char **argv)
         read_pipe(fd[0], (struct Reserva *)&re[cont], sizeof(Reserva), pipe, O_RDONLY);
         if (re[cont].amount_people == 0)
         {
-            for (int i = bh.current_time; i < bh.close_time; i++)
+            for (int i = bh.current_time; i <= bh.close_time; i++)
             {
-                simulate_time(2, 1, 3);
-                bh.current_time += 1;
+                //simulate_time(2, 1, 3);
                 update_tree(&tree, getAmountPeopleByHour(&tree, bh.current_time), bh.current_time);
                 printTree(tree->root);
                 printf("\nOcupacion::(%d) ____ maxima Ocupacion::(%d)\n", getAmountPeople(node), atoi(argv[8]));
                 printf("\n***************************************************\n");
+                bh.current_time += 1;
             }
 
             break;
@@ -70,14 +70,14 @@ int main(int argc, char **argv)
             }
             else
             {
-                for (int i = bh.current_time; i < atoi(re[cont].time); i++)
+                for (int i = bh.current_time; i <= atoi(re[cont].time); i++)
                 {
-                    simulate_time(2, 1, 3);
-                    bh.current_time += 1;
+                    //simulate_time(2, 1, 3);
                     update_tree(&tree, getAmountPeopleByHour(&tree, bh.current_time), bh.current_time);
                     printTree(tree->root);
                     printf("\nOcupacion::(%d) ____ maxima Ocupacion::(%d)\n", getAmountPeople(node), atoi(argv[8]));
                     printf("\n***************************************************\n");
+                    bh.current_time += 1;
                 }
                 update_tree(&tree, getAmountPeople(tree->root), bh.current_time);
                 re[cont].current_time = bh.current_time;
@@ -124,5 +124,4 @@ void printTree(GeneralNode *ct)
     }
     if (ct != NULL)
         printf("%s\n", (char *)(ct->data));
-        
 }

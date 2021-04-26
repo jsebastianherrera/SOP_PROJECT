@@ -191,7 +191,7 @@ int getAmountPeopleByHour(GeneralTree **tree, int time)
 int sufficent_space(GeneralTree *tree, reserva re, beach bh)
 {
     int rt = -1;
-    for (int i = getCurrentTime(tree->root); i < bh.close_time; i++)
+    for (int i = getCurrentTime(tree->root); i < bh.close_time - 1; i++)
     {
         if (getAmountPeopleByHour(&tree, i) + re.amount_people <= bh.max_people)
         {
@@ -205,13 +205,17 @@ int sufficent_space(GeneralTree *tree, reserva re, beach bh)
 }
 int answer_request(GeneralTree **tree, reserva *re, beach *bh)
 {
-    int rt = 1;
+    int rt = 0;
     GeneralNode *found = search((*tree)->root, re->time);
     if (found != NULL)
     {
         update_beach(*tree, bh);
+        if (atoi(re->time) > 17)
+        {
+            re->status = 2;
+        }
         //Reserve ok
-        if (getAmountPeople((*tree)->root) + re->amount_people <= bh->max_people)
+        else if (getAmountPeopleByHour(tree,atoi(re->time)) + re->amount_people <= bh->max_people)
         {
             re->status = 0;
             char *a;
@@ -228,12 +232,13 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
         {
             if (sufficent_space(*tree, *re, *bh) != -1)
             {
-                // strcpy(re->time,int_to_char(sufficent_space(*tree, *re, *bh),1));
-                //answer_request(tree,re,bh);
                 re->status = 1;
                 char *a;
                 a = strcat(re->family_name, int_to_char(re->amount_people, 0));
                 int time = sufficent_space(*tree, *re, *bh);
+                strcpy(re->time, int_to_char(time, 1));
+
+                //**************************************
                 for (int i = 0; i <= 1; ++i)
                 {
                     time += i;
@@ -241,11 +246,8 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
                 }
             }
             else
-            {
-                
-            }
+                re->status = 2;
         }
-       
     }
     else
         return -1;
