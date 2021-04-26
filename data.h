@@ -240,12 +240,12 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
                     insertNode(&(*tree)->root, int_to_char(time, 1), a);
                 }
             }
+            else
+            {
+                
+            }
         }
-        //Late
-        /*if (atoire->time < getCurrentTime((*tree)->root))
-        {
-            rt = 2;
-        }*/
+       
     }
     else
         return -1;
