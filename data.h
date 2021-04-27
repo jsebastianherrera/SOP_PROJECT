@@ -1,3 +1,4 @@
+int solicitudes_negadas = 0, solicitudes_aprobadas = 0, solicitudes_reprogramadas = 0;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -12,17 +13,15 @@
 #include "Tree/GeneralTree.h"
 #define MAX_RESERVARTION 20
 #define PRINT_VAR(X) printf("Values:%d\n", X);
-typedef struct data
-{
-    char agent_name[MAX_SIZE];
-    reserva reservation[MAX_RESERVARTION];
-    size_t size;
-} data;
 /**
  * @brief  function to simulated time
  * @param argc number of parameters 
  * @param ... time to simulate(hour), seconds per hour
  */
+typedef struct
+{
+    char string[80];
+} String;
 void simulate_time(const int argc, ...)
 {
     //! Testing function
@@ -35,10 +34,6 @@ void simulate_time(const int argc, ...)
     //TODO: simulated time
     for (int i = 0; i < values[0]; ++i)
         sleep(values[1]);
-}
-int check_time(int compareTo, int current_time)
-{
-    return -1 ? compareTo < current_time : 0;
 }
 void write_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
 {
@@ -92,12 +87,6 @@ char *drop_space(char *line)
     }
     return rt;
 }
-void print(data dt)
-{
-    printf("Solicitudes agente:%s\n", dt.agent_name);
-    for (int i = 0; i < dt.size; i++)
-        printf("Familia:%s - Hora:%s - #Personas:%d\n", dt.reservation[i].family_name, dt.reservation[i].time, dt.reservation[i].amount_people);
-}
 char *int_to_char(int num, int param)
 {
     char *ret = malloc(4);
@@ -147,26 +136,6 @@ void update_tree(GeneralTree **tree, int amount_people, int current_time)
     if (*tree != NULL)
         setHeadTime(&(*tree)->root, current_time, amount_people);
 }
-void update_beach(GeneralTree *tree, beach *bh)
-{
-    GeneralNode *found = search(tree->root, int_to_char(bh->current_time, 1));
-    int i = 0, sum = 0;
-    if (found != NULL && size_list(found->dec) > 0)
-    {
-        Node *node = found->dec->head;
-        for (int i = 0; i < size_list(found->dec); i++)
-        {
-            GeneralNode *tmp = (GeneralNode *)node->data;
-            char *cpy = malloc(MAX_SIZE);
-            strcpy(cpy, tmp->data);
-            char *token = strtok(cpy, ",");
-            token = strtok(NULL, ",");
-            sum += atoi(token);
-            node = node->next;
-        }
-    }
-    bh->amount_people = sum;
-}
 int getAmountPeopleByHour(GeneralTree **tree, int time)
 {
     int rt = 0;
@@ -191,7 +160,7 @@ int getAmountPeopleByHour(GeneralTree **tree, int time)
 int sufficent_space(GeneralTree *tree, reserva re, beach bh)
 {
     int rt = -1;
-    for (int i = getCurrentTime(tree->root); i < bh.close_time - 1; i++)
+    for (int i = atoi(re.time); i < bh.close_time - 1; i++)
     {
         if (getAmountPeopleByHour(&tree, i) + re.amount_people <= bh.max_people)
         {
@@ -209,14 +178,16 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
     GeneralNode *found = search((*tree)->root, re->time);
     if (found != NULL)
     {
-        update_beach(*tree, bh);
+
         if (atoi(re->time) > 17)
         {
             re->status = 2;
+            solicitudes_negadas++;
         }
         //Reserve ok
-        else if (getAmountPeopleByHour(tree,atoi(re->time)) + re->amount_people <= bh->max_people)
+        else if (getAmountPeopleByHour(tree, atoi(re->time)) + re->amount_people <= bh->max_people)
         {
+            solicitudes_aprobadas++;
             re->status = 0;
             char *a;
             a = strcat(re->family_name, int_to_char(re->amount_people, 0));
@@ -237,21 +208,125 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
                 a = strcat(re->family_name, int_to_char(re->amount_people, 0));
                 int time = sufficent_space(*tree, *re, *bh);
                 strcpy(re->time, int_to_char(time, 1));
-
                 //**************************************
                 for (int i = 0; i <= 1; ++i)
                 {
                     time += i;
                     insertNode(&(*tree)->root, int_to_char(time, 1), a);
                 }
+                solicitudes_reprogramadas++;
             }
             else
+            {
                 re->status = 2;
+                solicitudes_negadas++;
+            }
         }
     }
     else
+    {
+        solicitudes_negadas++;
         return -1;
+    }
     update_tree(tree, getAmountPeopleByHour(tree, atoi(re->time)), bh->current_time);
 
     return rt;
+}
+int *sort_bubble(GeneralTree *tree, int *tam)
+{
+    int *arr = malloc(50), cont = 0;
+    for (int i = 7; i <= 19; i++)
+    {
+        if (getAmountPeopleByHour(&tree, i) != 0)
+        {
+            *(arr + cont) = getAmountPeopleByHour(&tree, i);
+            cont++;
+        }
+    }
+    //Sorted
+    int aux;
+    for (int i = 0; i < cont; i++)
+    {
+        for (int j = i + 1; j < cont; j++)
+        {
+            if (*(arr + i) < *(arr + j))
+            {
+                aux = *(arr + i);
+                *(arr + i) = *(arr + j);
+                *(arr + j) = aux;
+            }
+        }
+    }
+    *tam = cont;
+    return arr;
+}
+char *horaPico(GeneralTree *tree)
+{
+    int tam;
+    char *rt = malloc(50);
+    int *tmp = sort_bubble(tree, &tam);
+    if (tam > 0)
+    {
+        for (int i = 7; i <= 19; i++)
+        {
+
+            if (getAmountPeopleByHour(&tree, i) == *(tmp + 0))
+            {
+                strcat(rt, int_to_char(i, 1));
+                //strcat(rt, " a ");
+                //strcat(rt, int_to_char(i + 1, i));
+                strcat(rt, "  ");
+            }
+        }
+    }
+    return rt;
+}
+char *menorAfluencia(GeneralTree *tree)
+{
+    int tam, k = 0;
+    char *rt = malloc(50);
+    int *tmp = sort_bubble(tree, &tam);
+    if (tam > 0)
+    {
+        for (int i = 7; i <= 19 && k == 0; i++)
+        {
+            if (getAmountPeopleByHour(&tree, i) == *(tmp + tam - 1))
+            {
+                strcat(rt, int_to_char(i, 1));
+                //strcat(rt, " a ");
+                //strcat(rt, int_to_char(i + 1, i));
+                strcat(rt, "  ");
+            }
+        }
+    }
+    return rt;
+}
+void report(GeneralTree *tree)
+{
+    //sort_bubble(tree);
+    String mat[6][2];
+    strcpy(mat[0][0].string, "Indicadores");
+    strcpy(mat[0][1].string, "                                     Valor");
+    strcpy(mat[1][0].string, "Horas pico");
+    strcpy(mat[2][0].string, "Horas con menor afluencia");
+    strcpy(mat[3][0].string, "Numero de solictudes negadas");
+    strcpy(mat[4][0].string, "Numero de solicitudes aceptadas en su hora");
+    strcpy(mat[5][0].string, "Numero de solictudes reprogramadas");
+    strcpy(mat[1][1].string, "                                       ");
+    strcat(mat[1][1].string, horaPico(tree));
+    strcpy(mat[2][1].string, "                       ");
+    strcat(mat[2][1].string, menorAfluencia(tree));
+    strcpy(mat[3][1].string, "                       ");
+    strcat(mat[3][1].string, int_to_char(solicitudes_negadas, 1));
+    strcpy(mat[4][1].string, "       ");
+    strcat(mat[4][1].string, int_to_char(solicitudes_aprobadas, 1));
+    strcpy(mat[5][1].string, "               ");
+    strcat(mat[5][1].string, int_to_char(solicitudes_reprogramadas, 1));
+
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 2; j++)
+            printf("%s\t", mat[i][j].string);
+        printf("\n");
+    }
 }

@@ -1,13 +1,8 @@
-Zuluaga,7,10
-Perez,7,4
-Jorge,7,7
-Rojas,8,1
-Herrera,9,11
-Sofia,9,2
-Javier,9,20
-Niño,10,20
-Tomas,11,20
-Cami,13,19
-Laia,15,5
-Walter,16,2
+Torres,12,6
+Perez,14,7
+Ribas,8, 4
+Rojas,8,10
+Pinilla,10,12 
+Zamora,18,10
+Piniea,11,21
 ,,

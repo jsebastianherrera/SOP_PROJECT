@@ -1,9 +1,0 @@
-Zuluaga,7,10
-Perez,7,4
-Jorge,7,7
-Rojas,8,1
-Herrera,9,2
-Niño,10,2
-Laia,15,5
-Walter,16,2
-,,

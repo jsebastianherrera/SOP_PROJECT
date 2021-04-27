@@ -27,8 +27,8 @@ int main(int argc, char **argv)
         memset((reserva *)&re, 0, sizeof(reserva));
         re.status = -1;
         int k = 0;
-        pnt = strtok(line, ",");
         line = drop_space(line);
+        pnt = strtok(line, ",");
         while (pnt != NULL && k <= 2)
         {
             if (k == 0)
