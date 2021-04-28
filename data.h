@@ -185,7 +185,7 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
             solicitudes_negadas++;
         }
         //Reserve ok
-        else if (getAmountPeopleByHour(tree, atoi(re->time)) + re->amount_people <= bh->max_people)
+        else if (getAmountPeopleByHour(tree, atoi(re->time)) + re->amount_people <= bh->max_people && getAmountPeopleByHour(tree, atoi(re->time) + 1) + re->amount_people <= bh->max_people)
         {
             solicitudes_aprobadas++;
             re->status = 0;
