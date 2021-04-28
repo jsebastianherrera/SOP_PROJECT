@@ -1,8 +1,6 @@
-Torres,12,6
+Torres,12,7
 Perez,14,7
 Ribas,8, 4
 Rojas,8,10
 Pinilla,10,12 
-Zamora,18,10
-Piniea,11,21
 ,,

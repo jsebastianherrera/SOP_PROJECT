@@ -304,6 +304,7 @@ char *menorAfluencia(GeneralTree *tree)
 void report(GeneralTree *tree)
 {
     //sort_bubble(tree);
+    printf("\t\t\t REPORTE\n");
     String mat[6][2];
     strcpy(mat[0][0].string, "Indicadores");
     strcpy(mat[0][1].string, "                                     Valor");
