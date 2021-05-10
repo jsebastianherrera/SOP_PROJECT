@@ -22,30 +22,35 @@ int main(int argc, char **argv)
     Reserva re;
     FILE *file = fopen(argv[4], "r");
     char *pnt, *line = malloc(MAX_SIZE);
-    while (fgets(line, MAX_SIZE, file) != NULL && line[0] != 44)
+    if (file)
     {
-        memset((reserva *)&re, 0, sizeof(reserva));
-        re.status = -1;
-        int k = 0;
-        line = drop_space(line);
-        pnt = strtok(line, ",");
-        while (pnt != NULL && k <= 2)
+        while (fgets(line, MAX_SIZE, file) != NULL && line[0] != 44)
         {
-            if (k == 0)
-                strcpy(re.family_name, pnt);
-            else if (k == 1)
-                strcpy(re.time, pnt);
-            else
-                re.amount_people = atoi(pnt);
-            k++;
-            pnt = strtok(NULL, ",");
-        }
-        if (atoi(re.time) >= current_time)
-        {
-            write_pipe(fd[1], &re, sizeof(re), pipe, O_WRONLY);
-            read_pipe(fd[0], &re, sizeof(re), pipe, O_RDONLY);
+            memset((reserva *)&re, 0, sizeof(reserva));
+            re.status = -1;
+            int k = 0;
+            line = drop_space(line);
+            pnt = strtok(line, ",");
+            while (pnt != NULL && k <= 2)
+            {
+                if (k == 0)
+                    strcpy(re.family_name, pnt);
+                else if (k == 1)
+                    strcpy(re.time, pnt);
+                else
+                    re.amount_people = atoi(pnt);
+                k++;
+                pnt = strtok(NULL, ",");
+            }
+            if (atoi(re.time) >= current_time)
+            {
+                write_pipe(fd[1], &re, sizeof(re), pipe, O_WRONLY);
+                read_pipe(fd[0], &re, sizeof(re), pipe, O_RDONLY);
+            }
         }
     }
+    else
+        printf("EL archivo de nombre %s no existe o no abre.\n", argv[4]);
     memset(&re, 0, sizeof(Reserva));
     write_pipe(fd[1], &re, sizeof(re), pipe, O_WRONLY);
 }
