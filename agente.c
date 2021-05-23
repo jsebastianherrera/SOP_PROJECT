@@ -19,6 +19,7 @@ int main(int argc, char **argv)
         exit(1);
     }
     //**************Reading FILE************************
+    printf("Current time:%d\n", current_time);
     Reserva re;
     FILE *file = fopen(argv[4], "r");
     char *pnt, *line = malloc(MAX_SIZE);
@@ -44,13 +45,29 @@ int main(int argc, char **argv)
             }
             if (atoi(re.time) >= current_time)
             {
-                write_pipe(fd[1], &re, sizeof(re), pipe, O_WRONLY);
-                read_pipe(fd[0], &re, sizeof(re), pipe, O_RDONLY);
+                char tmp[MAX_SIZE];
+                strcpy(tmp, re.family_name);
+                write_pipe(fd[1], &re, sizeof(re), agent, O_WRONLY);
+                read_pipe(fd[0], &re, sizeof(re), agent, O_RDONLY);
+                if (re.status == 0)
+                    printf("Solicitud familia:%s \tEstado:aprobado\n", tmp);
+                else if (re.status == 1)
+                    printf("Solicitud familia:%s \tEstado:reprogramado\n", tmp);
+                else
+                    printf("Solicitud familia:%s \tEstado:negado\n", tmp);
             }
+            else
+                printf("Solicitud familia:%s,no enviada hora inferior a la actual\n", re.family_name);
+
+            sleep(atoi(argv[6]));
         }
     }
     else
         printf("EL archivo de nombre %s no existe o no abre.\n", argv[4]);
     memset(&re, 0, sizeof(Reserva));
-    write_pipe(fd[1], &re, sizeof(re), pipe, O_WRONLY);
+    write_pipe(fd[1], &re, sizeof(re), agent, O_WRONLY);
+    char *command = malloc(20);
+    strcpy(command, "rm ");
+    strcat(command, agent);
+    system(command);
 }

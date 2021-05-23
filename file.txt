@@ -1,6 +1,0 @@
-Torres,12,7
-Perez,14,7
-Ribas,8, 4
-Rojas,8,10
-Pinilla,  10,12 
-,,

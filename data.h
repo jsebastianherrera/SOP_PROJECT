@@ -8,11 +8,14 @@ int solicitudes_negadas = 0, solicitudes_aprobadas = 0, solicitudes_reprogramada
 #include <string.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <signal.h>
 #include "playa.h"
+#include <pthread.h>
 #include "reserva.h"
+#include <semaphore.h>
 #include "Tree/GeneralTree.h"
 #define MAX_RESERVARTION 20
-#define PRINT_VAR(X) printf("Values:%d\n", X);
+#define LONG 4
 /**
  * @brief  function to simulated time
  * @param argc number of parameters 
@@ -22,6 +25,25 @@ typedef struct
 {
     char string[80];
 } String;
+void clean_fifo(char *pipe)
+{
+    mode_t fifo_mode = S_IRUSR | S_IWUSR;
+    unlink(pipe);
+    if (mkfifo(pipe, fifo_mode) == -1)
+    {
+        perror("mkfifo");
+        exit(1);
+    }
+}
+char *randomChar()
+{
+    char *rt = malloc(LONG);
+    srand(time(NULL));
+    for (int i = 0; i < 4; i++)
+        rt[i] = 65 + rand() % (90 - 65);
+    srand(time(NULL));
+    return (char *)rt;
+}
 void simulate_time(const int argc, ...)
 {
     //! Testing function
@@ -37,26 +59,22 @@ void simulate_time(const int argc, ...)
 }
 void write_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
 {
-    int boolean = 0, bytes;
-    do
+    int boolean = 0;
+    fd = open(pipe, flag);
+    if (fd == -1)
     {
-        fd = open(pipe, flag);
-        if (fd == -1)
-        {
-            perror("pipe");
-            printf(" Se volvera a intentar despues\n");
-            sleep(5);
-        }
-        else
-            boolean = 1;
-    } while (boolean == 0);
-    bytes = write(fd, buf, size);
-    // printf("Sent it:%d\n", bytes);
+        perror("pipe");
+        printf(" Se volvera a intentar despues\n");
+        sleep(5);
+    }
+    else
+        boolean = 1;
+    write(fd, buf, size);
     close(fd);
 }
 void read_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
 {
-    int fg = 0, bytes;
+    int fg = 0;
     do
     {
         fd = open(pipe, flag);
@@ -69,8 +87,7 @@ void read_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
         else
             fg = 1;
     } while (fg == 0);
-    bytes = read(fd, buf, size);
-    // printf("Received it:%d\n", bytes);
+    read(fd, buf, size);
     close(fd);
 }
 char *drop_space(char *line)
@@ -160,14 +177,12 @@ int getAmountPeopleByHour(GeneralTree **tree, int time)
 int sufficent_space(GeneralTree *tree, reserva re, beach bh)
 {
     int rt = -1;
-    for (int i = atoi(re.time); i < bh.close_time - 1; i++)
+    for (int i = atoi(re.time); i <= bh.close_time - 1; i++)
     {
         if (getAmountPeopleByHour(&tree, i) + re.amount_people <= bh.max_people)
         {
             if (getAmountPeopleByHour(&tree, i + 1) + re.amount_people <= bh.max_people)
-            {
                 return i;
-            }
         }
     }
     return rt;
@@ -179,7 +194,7 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
     if (found != NULL)
     {
 
-        if (atoi(re->time) > 17)
+        if (atoi(re->time) > bh->close_time)
         {
             re->status = 2;
             solicitudes_negadas++;
@@ -201,6 +216,7 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
         //Max amount filled
         else
         {
+            //printf("**Entrela**");
             if (sufficent_space(*tree, *re, *bh) != -1)
             {
                 re->status = 1;
@@ -218,6 +234,7 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
             }
             else
             {
+                printf("**Entrela**");
                 re->status = 2;
                 solicitudes_negadas++;
             }
@@ -229,13 +246,12 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
         return -1;
     }
     update_tree(tree, getAmountPeopleByHour(tree, atoi(re->time)), bh->current_time);
-
     return rt;
 }
-int *sort_bubble(GeneralTree *tree, int *tam)
+int *sort_bubble(GeneralTree *tree, int *tam, beach bh)
 {
     int *arr = malloc(50), cont = 0;
-    for (int i = 7; i <= 19; i++)
+    for (int i = bh.inti_time; i <= bh.close_time; i++)
     {
         if (getAmountPeopleByHour(&tree, i) != 0)
         {
@@ -260,11 +276,11 @@ int *sort_bubble(GeneralTree *tree, int *tam)
     *tam = cont;
     return arr;
 }
-char *horaPico(GeneralTree *tree)
+char *horaPico(GeneralTree *tree, beach bh)
 {
     int tam;
     char *rt = malloc(50);
-    int *tmp = sort_bubble(tree, &tam);
+    int *tmp = sort_bubble(tree, &tam, bh);
     if (tam > 0)
     {
         for (int i = 7; i <= 19; i++)
@@ -273,19 +289,17 @@ char *horaPico(GeneralTree *tree)
             if (getAmountPeopleByHour(&tree, i) == *(tmp + 0))
             {
                 strcat(rt, int_to_char(i, 1));
-                //strcat(rt, " a ");
-                //strcat(rt, int_to_char(i + 1, i));
                 strcat(rt, "  ");
             }
         }
     }
     return rt;
 }
-char *menorAfluencia(GeneralTree *tree)
+char *menorAfluencia(GeneralTree *tree, beach bh)
 {
     int tam, k = 0;
     char *rt = malloc(50);
-    int *tmp = sort_bubble(tree, &tam);
+    int *tmp = sort_bubble(tree, &tam, bh);
     if (tam > 0)
     {
         for (int i = 7; i <= 19 && k == 0; i++)
@@ -293,15 +307,13 @@ char *menorAfluencia(GeneralTree *tree)
             if (getAmountPeopleByHour(&tree, i) == *(tmp + tam - 1))
             {
                 strcat(rt, int_to_char(i, 1));
-                //strcat(rt, " a ");
-                //strcat(rt, int_to_char(i + 1, i));
                 strcat(rt, "  ");
             }
         }
     }
     return rt;
 }
-void report(GeneralTree *tree)
+void report(GeneralTree *tree, beach bh)
 {
     //sort_bubble(tree);
     printf("\t\t\t REPORTE\n");
@@ -314,9 +326,9 @@ void report(GeneralTree *tree)
     strcpy(mat[4][0].string, "Numero de solicitudes aceptadas en su hora");
     strcpy(mat[5][0].string, "Numero de solictudes reprogramadas");
     strcpy(mat[1][1].string, "                                       ");
-    strcat(mat[1][1].string, horaPico(tree));
+    strcat(mat[1][1].string, horaPico(tree, bh));
     strcpy(mat[2][1].string, "                       ");
-    strcat(mat[2][1].string, menorAfluencia(tree));
+    strcat(mat[2][1].string, menorAfluencia(tree, bh));
     strcpy(mat[3][1].string, "                       ");
     strcat(mat[3][1].string, int_to_char(solicitudes_negadas, 1));
     strcpy(mat[4][1].string, "       ");
