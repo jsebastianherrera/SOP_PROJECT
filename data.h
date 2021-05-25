@@ -21,10 +21,12 @@ int solicitudes_negadas = 0, solicitudes_aprobadas = 0, solicitudes_reprogramada
  * @param argc number of parameters 
  * @param ... time to simulate(hour), seconds per hour
  */
+//estructura para manejar cadena de caracteres
 typedef struct
 {
     char string[80];
 } String;
+//Inializa un file descriptor
 void clean_fifo(char *pipe)
 {
     mode_t fifo_mode = S_IRUSR | S_IWUSR;
@@ -35,6 +37,7 @@ void clean_fifo(char *pipe)
         exit(1);
     }
 }
+//Generea una cadena aleatoria
 char *randomChar()
 {
     char *rt = malloc(LONG);
@@ -44,19 +47,7 @@ char *randomChar()
     srand(time(NULL));
     return (char *)rt;
 }
-void simulate_time(const int argc, ...)
-{
-    //! Testing function
-    int *values = malloc(argc);
-    va_list args;
-    va_start(args, argc);
-    for (int i = 0; i < argc; ++i)
-        values[i] = va_arg(args, int);
-    va_end(args);
-    //TODO: simulated time
-    for (int i = 0; i < values[0]; ++i)
-        sleep(values[1]);
-}
+//Escribe en un pipe
 void write_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
 {
     int boolean = 0;
@@ -72,6 +63,7 @@ void write_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
     write(fd, buf, size);
     close(fd);
 }
+//Lee de un pipe
 void read_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
 {
     int fg = 0;
@@ -90,6 +82,7 @@ void read_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
     read(fd, buf, size);
     close(fd);
 }
+//Quita lo espacios de una linea
 char *drop_space(char *line)
 {
     char *rt = malloc(strlen(line));
@@ -104,6 +97,7 @@ char *drop_space(char *line)
     }
     return rt;
 }
+//convierte un entero a char
 char *int_to_char(int num, int param)
 {
     char *ret = malloc(4);
@@ -122,6 +116,7 @@ char *int_to_char(int num, int param)
         ret[i] = num + 48;
     return ret;
 }
+//Obtiene el tiempo actual de la cabeza del arbol
 int getCurrentTime(GeneralNode *node)
 {
     char *cpy = malloc(sizeof(char *));
@@ -129,6 +124,7 @@ int getCurrentTime(GeneralNode *node)
     char *token = strtok(cpy, "(,");
     return atoi(token);
 }
+//Obtiene la cantidad de gente actual de la cabeza del arbol
 int getAmountPeople(GeneralNode *node)
 {
     char *cpy = malloc(sizeof(char *));
@@ -137,7 +133,7 @@ int getAmountPeople(GeneralNode *node)
     token = strtok(NULL, ")");
     return atoi(token);
 }
-//Sum time
+//Inicializa la cabeza del arbol
 void setHeadTime(GeneralNode **head, int time, int amount_people)
 {
     char *_time = malloc(sizeof(char *));
@@ -148,11 +144,13 @@ void setHeadTime(GeneralNode **head, int time, int amount_people)
     strcat(_time, ")");
     strcpy((*head)->data, _time);
 }
+//Actualiza la informacion dentro del arbol
 void update_tree(GeneralTree **tree, int amount_people, int current_time)
 {
     if (*tree != NULL)
         setHeadTime(&(*tree)->root, current_time, amount_people);
 }
+//Obtiene la cantidad de gente por hora
 int getAmountPeopleByHour(GeneralTree **tree, int time)
 {
     int rt = 0;
@@ -174,6 +172,7 @@ int getAmountPeopleByHour(GeneralTree **tree, int time)
     }
     return rt;
 }
+//Verifica si hay espacio para reprogramar una solicitud
 int sufficent_space(GeneralTree *tree, reserva re, beach bh)
 {
     int rt = -1;
@@ -187,6 +186,7 @@ int sufficent_space(GeneralTree *tree, reserva re, beach bh)
     }
     return rt;
 }
+//Da repsuestas a las solicitudes
 int answer_request(GeneralTree **tree, reserva *re, beach *bh)
 {
     int rt = 0;
@@ -234,7 +234,6 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
             }
             else
             {
-                printf("**Entrela**");
                 re->status = 2;
                 solicitudes_negadas++;
             }
@@ -248,6 +247,7 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
     update_tree(tree, getAmountPeopleByHour(tree, atoi(re->time)), bh->current_time);
     return rt;
 }
+//Ordenamiento por metodo burbuja
 int *sort_bubble(GeneralTree *tree, int *tam, beach bh)
 {
     int *arr = malloc(50), cont = 0;
@@ -276,6 +276,7 @@ int *sort_bubble(GeneralTree *tree, int *tam, beach bh)
     *tam = cont;
     return arr;
 }
+//Retorana la hora pico en la playa
 char *horaPico(GeneralTree *tree, beach bh)
 {
     int tam;
@@ -295,6 +296,7 @@ char *horaPico(GeneralTree *tree, beach bh)
     }
     return rt;
 }
+//Retorana la hora de menos gente en la playa
 char *menorAfluencia(GeneralTree *tree, beach bh)
 {
     int tam, k = 0;
@@ -313,6 +315,7 @@ char *menorAfluencia(GeneralTree *tree, beach bh)
     }
     return rt;
 }
+//Genera el reporte final
 void report(GeneralTree *tree, beach bh)
 {
     //sort_bubble(tree);

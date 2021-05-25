@@ -1,12 +1,16 @@
 #include "data.h"
 GeneralTree *tree;
 beach bh;
+//Estructura donde se almacena las reservas
 typedef struct proof
 {
     struct reserva *re;
 } data;
+//Inicializar el arbol
 void set_tree(GeneralTree **tree, char *, char *);
+//Imprimir arbol
 void printTree(GeneralNode *ct);
+//Routina para avisar cuando una hora ya paso y imprimir la gente que sale y entra
 void *routineTime(void *val)
 {
     printf("Current time: %d\n", bh.current_time);
@@ -23,6 +27,7 @@ void *routineTime(void *val)
     report(tree, bh);
     kill(getpid(), 9);
 }
+//Lee del pipe
 void *routineRead(void *val)
 {
     int fg = 0, fd;
@@ -43,6 +48,7 @@ void *routineRead(void *val)
     close(fd);
     return buf;
 }
+//Escribe en el pipe para enviar la hora
 void *routineWrite(void *val)
 {
     int fg = 0, fd;
@@ -65,15 +71,18 @@ void *routineWrite(void *val)
 }
 int main(int argc, char **argv)
 {
+    //inicializar variables
     int fd;
     data data[20];
     char *pipe = malloc(MAX_SIZE);
     char *agent_name = malloc(MAX_SIZE / 2);
     struct reserva *re = malloc(20);
+    //validar que los parametros esten completos
     if (argc == 11)
     {
         if (strcmp(argv[1], "-i") == 0 && strcmp(argv[3], "-f") == 0 && strcmp(argv[5], "-s") == 0 && strcmp(argv[7], "-t") == 0 && strcmp(argv[9], "-p") == 0)
         {
+            //Inicializar variables
             strcpy(pipe, argv[10]);
             memset(&bh, 0, sizeof(beach));
             bh.inti_time = atoi(argv[2]);
@@ -95,20 +104,20 @@ int main(int argc, char **argv)
     }
     set_tree(&tree, int_to_char(bh.inti_time, 1), int_to_char(bh.close_time, 1));
     pthread_t p_read, p_write, p_time;
+    //Inicializar el file descriptor
     clean_fifo(pipe);
     int seconds = atoi(argv[6]);
     pthread_create(&p_time, NULL, routineTime, &seconds);
     do
     {
+        //Lee y escribe en el pipe
         int cont = 0;
         //p_read get the agent name from the pipe
-        pthread_create(&p_read, NULL, routineRead, pipe);
-        pthread_join(p_read, (void **)&agent_name);
+        read_pipe(fd, (char *)agent_name, MAX_SIZE, pipe, O_RDONLY);
         printf("Agente:%s\t", agent_name);
         clean_fifo(agent_name);
         //send curret hour
         pthread_create(&p_write, NULL, routineWrite, pipe);
-        pthread_join(p_write, NULL);
         printf("pipe: %s\n", agent_name);
         //Read all the requested by an agent
         do
@@ -127,6 +136,7 @@ int main(int argc, char **argv)
 }
 void set_tree(GeneralTree **tree, char *current_time, char *final_hour)
 {
+    //Inicializa la cabeza de la siguiente forma (tiempo,cantidad actual)
     char *time = malloc(sizeof(char *));
     strcat(time, "(");
     strcat(time, current_time);
