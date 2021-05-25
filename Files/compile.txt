@@ -1,0 +1,2 @@
+./control -i 7 -f 19 -s 5 -t 20 -p pipe
+./agente -s agente1 -a Files/file.txt -t 2 -p pipe

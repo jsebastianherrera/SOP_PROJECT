@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "generaltree.h": "c"
+        "generaltree.h": "c",
+        "stdio.h": "c"
     }
 }

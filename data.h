@@ -1,3 +1,4 @@
+int solicitudes_negadas = 0, solicitudes_aprobadas = 0, solicitudes_reprogramadas = 0;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -7,61 +8,65 @@
 #include <string.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <signal.h>
 #include "playa.h"
+#include <pthread.h>
 #include "reserva.h"
+#include <semaphore.h>
 #include "Tree/GeneralTree.h"
 #define MAX_RESERVARTION 20
-#define PRINT_VAR(X) printf("Values:%d\n", X);
-typedef struct data
-{
-    char agent_name[MAX_SIZE];
-    reserva reservation[MAX_RESERVARTION];
-    size_t size;
-} data;
+#define LONG 4
 /**
  * @brief  function to simulated time
  * @param argc number of parameters 
  * @param ... time to simulate(hour), seconds per hour
  */
-void simulate_time(const int argc, ...)
+//estructura para manejar cadena de caracteres
+typedef struct
 {
-    //! Testing function
-    int *values = malloc(argc);
-    va_list args;
-    va_start(args, argc);
-    for (int i = 0; i < argc; ++i)
-        values[i] = va_arg(args, int);
-    va_end(args);
-    //TODO: simulated time
-    for (int i = 0; i < values[0]; ++i)
-        sleep(values[1]);
-}
-int check_time(int compareTo, int current_time)
+    char string[80];
+} String;
+//Inializa un file descriptor
+void clean_fifo(char *pipe)
 {
-    return -1 ? compareTo < current_time : 0;
+    mode_t fifo_mode = S_IRUSR | S_IWUSR;
+    unlink(pipe);
+    if (mkfifo(pipe, fifo_mode) == -1)
+    {
+        perror("mkfifo");
+        exit(1);
+    }
 }
+//Generea una cadena aleatoria
+char *randomChar()
+{
+    char *rt = malloc(LONG);
+    srand(time(NULL));
+    for (int i = 0; i < 4; i++)
+        rt[i] = 65 + rand() % (90 - 65);
+    srand(time(NULL));
+    return (char *)rt;
+}
+//Escribe en un pipe
 void write_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
 {
-    int boolean = 0, bytes;
-    do
+    int boolean = 0;
+    fd = open(pipe, flag);
+    if (fd == -1)
     {
-        fd = open(pipe, flag);
-        if (fd == -1)
-        {
-            perror("pipe");
-            printf(" Se volvera a intentar despues\n");
-            sleep(5);
-        }
-        else
-            boolean = 1;
-    } while (boolean == 0);
-    bytes = write(fd, buf, size);
-    // printf("Sent it:%d\n", bytes);
+        perror("pipe");
+        printf(" Se volvera a intentar despues\n");
+        sleep(5);
+    }
+    else
+        boolean = 1;
+    write(fd, buf, size);
     close(fd);
 }
+//Lee de un pipe
 void read_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
 {
-    int fg = 0, bytes;
+    int fg = 0;
     do
     {
         fd = open(pipe, flag);
@@ -74,10 +79,10 @@ void read_pipe(int fd, void *buf, size_t size, char *pipe, int flag)
         else
             fg = 1;
     } while (fg == 0);
-    bytes = read(fd, buf, size);
-    // printf("Received it:%d\n", bytes);
+    read(fd, buf, size);
     close(fd);
 }
+//Quita lo espacios de una linea
 char *drop_space(char *line)
 {
     char *rt = malloc(strlen(line));
@@ -92,12 +97,7 @@ char *drop_space(char *line)
     }
     return rt;
 }
-void print(data dt)
-{
-    printf("Solicitudes agente:%s\n", dt.agent_name);
-    for (int i = 0; i < dt.size; i++)
-        printf("Familia:%s - Hora:%s - #Personas:%d\n", dt.reservation[i].family_name, dt.reservation[i].time, dt.reservation[i].amount_people);
-}
+//convierte un entero a char
 char *int_to_char(int num, int param)
 {
     char *ret = malloc(4);
@@ -116,6 +116,7 @@ char *int_to_char(int num, int param)
         ret[i] = num + 48;
     return ret;
 }
+//Obtiene el tiempo actual de la cabeza del arbol
 int getCurrentTime(GeneralNode *node)
 {
     char *cpy = malloc(sizeof(char *));
@@ -123,6 +124,7 @@ int getCurrentTime(GeneralNode *node)
     char *token = strtok(cpy, "(,");
     return atoi(token);
 }
+//Obtiene la cantidad de gente actual de la cabeza del arbol
 int getAmountPeople(GeneralNode *node)
 {
     char *cpy = malloc(sizeof(char *));
@@ -131,7 +133,7 @@ int getAmountPeople(GeneralNode *node)
     token = strtok(NULL, ")");
     return atoi(token);
 }
-//Sum time
+//Inicializa la cabeza del arbol
 void setHeadTime(GeneralNode **head, int time, int amount_people)
 {
     char *_time = malloc(sizeof(char *));
@@ -142,31 +144,13 @@ void setHeadTime(GeneralNode **head, int time, int amount_people)
     strcat(_time, ")");
     strcpy((*head)->data, _time);
 }
+//Actualiza la informacion dentro del arbol
 void update_tree(GeneralTree **tree, int amount_people, int current_time)
 {
     if (*tree != NULL)
         setHeadTime(&(*tree)->root, current_time, amount_people);
 }
-void update_beach(GeneralTree *tree, beach *bh)
-{
-    GeneralNode *found = search(tree->root, int_to_char(bh->current_time, 1));
-    int i = 0, sum = 0;
-    if (found != NULL && size_list(found->dec) > 0)
-    {
-        Node *node = found->dec->head;
-        for (int i = 0; i < size_list(found->dec); i++)
-        {
-            GeneralNode *tmp = (GeneralNode *)node->data;
-            char *cpy = malloc(MAX_SIZE);
-            strcpy(cpy, tmp->data);
-            char *token = strtok(cpy, ",");
-            token = strtok(NULL, ",");
-            sum += atoi(token);
-            node = node->next;
-        }
-    }
-    bh->amount_people = sum;
-}
+//Obtiene la cantidad de gente por hora
 int getAmountPeopleByHour(GeneralTree **tree, int time)
 {
     int rt = 0;
@@ -188,31 +172,37 @@ int getAmountPeopleByHour(GeneralTree **tree, int time)
     }
     return rt;
 }
+//Verifica si hay espacio para reprogramar una solicitud
 int sufficent_space(GeneralTree *tree, reserva re, beach bh)
 {
     int rt = -1;
-    for (int i = getCurrentTime(tree->root); i < bh.close_time; i++)
+    for (int i = atoi(re.time); i <= bh.close_time - 1; i++)
     {
         if (getAmountPeopleByHour(&tree, i) + re.amount_people <= bh.max_people)
         {
             if (getAmountPeopleByHour(&tree, i + 1) + re.amount_people <= bh.max_people)
-            {
                 return i;
-            }
         }
     }
     return rt;
 }
+//Da repsuestas a las solicitudes
 int answer_request(GeneralTree **tree, reserva *re, beach *bh)
 {
-    int rt = 1;
+    int rt = 0;
     GeneralNode *found = search((*tree)->root, re->time);
     if (found != NULL)
     {
-        update_beach(*tree, bh);
-        //Reserve ok
-        if (getAmountPeople((*tree)->root) + re->amount_people <= bh->max_people)
+
+        if (atoi(re->time) > bh->close_time)
         {
+            re->status = 2;
+            solicitudes_negadas++;
+        }
+        //Reserve ok
+        else if (getAmountPeopleByHour(tree, atoi(re->time)) + re->amount_people <= bh->max_people && getAmountPeopleByHour(tree, atoi(re->time) + 1) + re->amount_people <= bh->max_people)
+        {
+            solicitudes_aprobadas++;
             re->status = 0;
             char *a;
             a = strcat(re->family_name, int_to_char(re->amount_people, 0));
@@ -226,30 +216,133 @@ int answer_request(GeneralTree **tree, reserva *re, beach *bh)
         //Max amount filled
         else
         {
+            //printf("**Entrela**");
             if (sufficent_space(*tree, *re, *bh) != -1)
             {
-                // strcpy(re->time,int_to_char(sufficent_space(*tree, *re, *bh),1));
-                //answer_request(tree,re,bh);
                 re->status = 1;
                 char *a;
                 a = strcat(re->family_name, int_to_char(re->amount_people, 0));
                 int time = sufficent_space(*tree, *re, *bh);
+                strcpy(re->time, int_to_char(time, 1));
+                //**************************************
                 for (int i = 0; i <= 1; ++i)
                 {
                     time += i;
                     insertNode(&(*tree)->root, int_to_char(time, 1), a);
                 }
+                solicitudes_reprogramadas++;
+            }
+            else
+            {
+                re->status = 2;
+                solicitudes_negadas++;
             }
         }
-        //Late
-        /*if (atoire->time < getCurrentTime((*tree)->root))
-        {
-            rt = 2;
-        }*/
     }
     else
+    {
+        solicitudes_negadas++;
         return -1;
+    }
     update_tree(tree, getAmountPeopleByHour(tree, atoi(re->time)), bh->current_time);
-
     return rt;
+}
+//Ordenamiento por metodo burbuja
+int *sort_bubble(GeneralTree *tree, int *tam, beach bh)
+{
+    int *arr = malloc(50), cont = 0;
+    for (int i = bh.inti_time; i <= bh.close_time; i++)
+    {
+        if (getAmountPeopleByHour(&tree, i) != 0)
+        {
+            *(arr + cont) = getAmountPeopleByHour(&tree, i);
+            cont++;
+        }
+    }
+    //Sorted
+    int aux;
+    for (int i = 0; i < cont; i++)
+    {
+        for (int j = i + 1; j < cont; j++)
+        {
+            if (*(arr + i) < *(arr + j))
+            {
+                aux = *(arr + i);
+                *(arr + i) = *(arr + j);
+                *(arr + j) = aux;
+            }
+        }
+    }
+    *tam = cont;
+    return arr;
+}
+//Retorana la hora pico en la playa
+char *horaPico(GeneralTree *tree, beach bh)
+{
+    int tam;
+    char *rt = malloc(50);
+    int *tmp = sort_bubble(tree, &tam, bh);
+    if (tam > 0)
+    {
+        for (int i = 7; i <= 19; i++)
+        {
+
+            if (getAmountPeopleByHour(&tree, i) == *(tmp + 0))
+            {
+                strcat(rt, int_to_char(i, 1));
+                strcat(rt, "  ");
+            }
+        }
+    }
+    return rt;
+}
+//Retorana la hora de menos gente en la playa
+char *menorAfluencia(GeneralTree *tree, beach bh)
+{
+    int tam, k = 0;
+    char *rt = malloc(50);
+    int *tmp = sort_bubble(tree, &tam, bh);
+    if (tam > 0)
+    {
+        for (int i = 7; i <= 19 && k == 0; i++)
+        {
+            if (getAmountPeopleByHour(&tree, i) == *(tmp + tam - 1))
+            {
+                strcat(rt, int_to_char(i, 1));
+                strcat(rt, "  ");
+            }
+        }
+    }
+    return rt;
+}
+//Genera el reporte final
+void report(GeneralTree *tree, beach bh)
+{
+    //sort_bubble(tree);
+    printf("\t\t\t REPORTE\n");
+    String mat[6][2];
+    strcpy(mat[0][0].string, "Indicadores");
+    strcpy(mat[0][1].string, "                                     Valor");
+    strcpy(mat[1][0].string, "Horas pico");
+    strcpy(mat[2][0].string, "Horas con menor afluencia");
+    strcpy(mat[3][0].string, "Numero de solictudes negadas");
+    strcpy(mat[4][0].string, "Numero de solicitudes aceptadas en su hora");
+    strcpy(mat[5][0].string, "Numero de solictudes reprogramadas");
+    strcpy(mat[1][1].string, "                                       ");
+    strcat(mat[1][1].string, horaPico(tree, bh));
+    strcpy(mat[2][1].string, "                       ");
+    strcat(mat[2][1].string, menorAfluencia(tree, bh));
+    strcpy(mat[3][1].string, "                       ");
+    strcat(mat[3][1].string, int_to_char(solicitudes_negadas, 1));
+    strcpy(mat[4][1].string, "       ");
+    strcat(mat[4][1].string, int_to_char(solicitudes_aprobadas, 1));
+    strcpy(mat[5][1].string, "               ");
+    strcat(mat[5][1].string, int_to_char(solicitudes_reprogramadas, 1));
+
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 2; j++)
+            printf("%s\t", mat[i][j].string);
+        printf("\n");
+    }
 }
